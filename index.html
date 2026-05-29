@@ -33,7 +33,7 @@
     .panel { background:var(--card); border:1px solid var(--borda); border-radius:18px; box-shadow:var(--sombra); overflow:hidden; }
     .panel-title { background:var(--verde); color:#fff; padding:13px 18px; font-size:18px; font-weight:900; text-transform:uppercase; letter-spacing:.3px; display:flex; align-items:center; gap:10px; }
     #map { height:660px; width:100%; }
-    .controls { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; padding:14px; border-bottom:1px solid var(--borda); background:#fbfdff; }
+    .controls { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; padding:14px; border-bottom:1px solid var(--borda); background:#fbfdff; }
     label { font-size:12px; font-weight:800; color:var(--azul); text-transform:uppercase; }
     select,input { width:100%; margin-top:5px; padding:10px 11px; border:1px solid #cbd6e2; border-radius:10px; font-size:14px; background:#fff; }
     .btn { border:0; border-radius:11px; background:var(--azul); color:white; font-weight:900; padding:12px; cursor:pointer; height:42px; margin-top:17px; }
@@ -99,6 +99,7 @@
           <div><label>Parceira</label><select id="fParceira"><option value="">Todas</option></select></div>
           <div><label>Status</label><select id="fStatus"><option value="">Todos</option></select></div>
           <div><label>Tipo</label><select id="fTipo"><option value="">Todos</option></select></div>
+          <div><label>Data de Programação</label><select id="fData"><option value="">Todas</option></select></div>
           <div><button class="btn" onclick="limparFiltros()">LIMPAR FILTROS</button></div>
         </div>
         <div class="map-links">
@@ -2053,10 +2054,12 @@
       const parceiros = [...new Set(DADOS.map(d => parceiraCurta(d.contratada)))].sort();
       const status = [...new Set(DADOS.map(d => d.status))].sort();
       const tipos = [...new Set(DADOS.map(d => d.tipo))].sort();
+      const datas = [...new Set(DADOS.map(d => d.data))].sort((a,b) => dataBRParaISO(a).localeCompare(dataBRParaISO(b)));
       addOptions("fParceira", parceiros);
       addOptions("fStatus", status);
       addOptions("fTipo", tipos);
-      ["fParceira","fStatus","fTipo"].forEach(id => document.getElementById(id).addEventListener("change", render));
+      addOptions("fData", datas);
+      ["fParceira","fStatus","fTipo","fData"].forEach(id => document.getElementById(id).addEventListener("change", render));
     }
 
     function addOptions(id, arr) {
@@ -2067,14 +2070,23 @@
       });
     }
 
+    function dataBRParaISO(data) {
+      if (!data) return "";
+      const partes = data.split("/");
+      if (partes.length !== 3) return data;
+      return `${partes[2]}-${partes[1]}-${partes[0]}`;
+    }
+
     function filtrarDados() {
       const p = document.getElementById("fParceira").value;
       const s = document.getElementById("fStatus").value;
       const t = document.getElementById("fTipo").value;
+      const data = document.getElementById("fData").value;
       return DADOS.filter(d =>
         (!p || parceiraCurta(d.contratada) === p) &&
         (!s || d.status === s) &&
-        (!t || d.tipo === t)
+        (!t || d.tipo === t) &&
+        (!data || d.data === data)
       );
     }
 
@@ -2120,7 +2132,7 @@
     }
 
     function limparFiltros() {
-      ["fParceira","fStatus","fTipo"].forEach(id => document.getElementById(id).value = "");
+      ["fParceira","fStatus","fTipo","fData"].forEach(id => document.getElementById(id).value = "");
       render();
     }
 
